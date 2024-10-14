@@ -1,0 +1,337 @@
+                                                MongoDB Task
+
+
+Design database for Zen class programme:
+
+Create database:
+
+use mongoDBtask
+
+switched to db mongoDBtask
+
+createCollection for the database:
+
+    Design database for Zen class programme
+users
+codekata
+attendance
+topics
+tasks
+company_drives
+mentors
+
+
+db.createCollection("users");
+{ ok: 1 }
+db.createCollection("codekata");
+{ ok: 1 }
+db.createCollection("attendancd");
+{ ok: 1 }
+db.createCollection("topics");
+{ ok: 1 }
+db.createCollection("tasks");
+{ ok: 1 }
+db.createCollection("company_drives");
+{ ok: 1 }
+db.createCollection("mentors");
+{ ok: 1 }
+
+
+Insert some data's for the collections:
+
+1.Users:
+db.users.insertOne({_id:"userId1",name:"jebastin",email:"jeba@gmail.com",mentor_id: "mentorId1"});
+{
+  acknowledged: true,
+  insertedId: 'userId1'
+}
+
+Data:
+_id: "userId1"
+name :"jebastin"
+email :"jeba@gmail.com"
+mentor_id :"mentorId1"
+
+2.Codekata:
+db.codekata.insertOne({_id:"codekataId1",user_id:"userId1",problems_solved: "120"});
+{
+  acknowledged: true,
+  insertedId: 'codekataId1'
+}
+
+Data:
+_id :"codekataId1"
+user_id :"userId1"
+problems_solved : 120
+
+3.Attendance:
+db.attendance.insertOne({_id: "attendanceId1",
+  user_id: "userId1",
+  date: ISODate("2020-10-16"),
+  status: "absent"
+});
+{
+  acknowledged: true,
+  insertedId: 'attendanceId1'
+}
+
+Data:
+
+_id :"attendanceId1"
+user_id :"userId1"
+date :2020-10-15T00:00:00.000+00:00
+status :"absent"
+
+_id :"attendanceId2"
+user_id :"userId2"
+date :2020-10-31T00:00:00.000+00:00
+status :"absent"
+
+4.Topics:
+db.topics.insertOne({_id: "topicId1",
+  name: "JavaScript Basics",
+  date: ISODate("2024-10-10")});
+{
+  acknowledged: true,
+  insertedId: 'topicId1'
+}
+
+Data:
+_id :"topicId1"
+name :"JavaScript Basics"
+date :2024-10-10T00:00:00.000+00:00
+
+5.Tasks:
+db.tasks.insertOne({_id: "taskId1",
+  topic_id: "topicId1",
+  name: "Variables & Loops",
+  submitted: true,
+  user_id: "userId1",
+  date: ISODate("2024-10-11")});
+{
+  acknowledged: true,
+  insertedId: 'taskId1'
+}
+
+Data:
+_id :"taskId1"
+topic_id :"topicId1"
+name :"Variables & Loops"
+submitted :true
+user_id :"userId1"
+date :2024-10-11T00:00:00.000+00:00
+
+_id :"taskId2"
+user_id :"userId2"
+name :"Components Task"
+submitted :false
+date :2020-10-15T00:00:00.000+00:00
+
+_id :"taskId3"
+topic_id ;"topicId3"
+name :"Mysql"
+submitted :false
+user_id  :"userId2"
+date :2024-10-20T00:00:00.000+00:00
+
+6.Company_drives:
+db.company_drives.insertOne({_id: "driveId1",
+  company_name: "Google",
+  date: ISODate("2020-10-20"),
+  students_appeared: ["userId1", "userId2"]});
+{
+  acknowledged: true,
+  insertedId: 'driveId1'
+}
+db.mentors.insertOne({ _id: "mentorId1",
+  name: "Mentor A",
+  mentee_count: "20"});
+{
+  acknowledged: true,
+  insertedId: 'mentorId1'
+}
+
+Data:
+_id :"driveId1"
+company_name :"Google"
+date :2020-10-20T00:00:00.000+00:00
+
+students_appeared
+Array (2)
+0
+"userId1"
+1
+"userId2"
+
+
+Queries:
+
+1.Find all the topics and tasks which are thought in the month of October
+
+
+db.topics.aggregate([{$lookup:
+{
+    from:"tasks",
+localField:"_id",
+foreignField:"topic_id",
+as:"tasks"
+}
+},
+{
+    $match:{
+        date:{
+            $gte:ISODate("2024-10-01"),
+            $lt: ISODate("2024-11-01")
+            }
+            }
+            }
+            ]);
+output:
+{
+  _id: 'topicId1',
+  name: 'JavaScript Basics',
+  date: 2024-10-10T00:00:00.000Z,
+  tasks: [
+    {
+      _id: 'taskId1',
+      topic_id: 'topicId1',
+      name: 'Variables & Loops',
+      submitted: true,
+      user_id: 'userId1',
+      date: 2024-10-11T00:00:00.000Z  
+    }
+  ]
+}
+
+2.Find all the company drives which appeared between 15 oct-2020 and 31-oct-2020
+
+db.company_drives.find({date:{$gte:ISODate("2020-10-15"), $lte: ISODate("2020-10-31")}});
+
+output
+{
+  _id: 'driveId1',
+  company_name: 'Google',
+  date: 2020-10-20T00:00:00.000Z,
+  students_appeared: [
+    'userId1',
+    'userId2'
+  ]
+}
+
+3.Find all the company drives and students who are appeared for the placement.
+db.company_drives.aggregate([
+  {
+    $lookup: {
+      from: "users",
+      localField: "students_appeared",
+      foreignField: "_id",
+      as: "students"
+    }
+  }
+]);
+
+output
+{
+  _id: 'driveId1',
+  company_name: 'Google',
+  date: 2020-10-20T00:00:00.000Z,
+  students_appeared: [
+    'userId1',
+    'userId2'
+  ],
+  students: [
+    {
+      _id: 'userId1',
+      name: 'jebastin',
+      email: 'jeba@gmail.com',
+      mentor_id: 'mentorId1'
+    }
+  ]
+}
+
+4.Find the number of problems solved by the user in codekata
+db.codekata.aggregate([
+  {
+    $group: {
+      _id: "$user_id",
+      total_problems_solved: { $sum: "$problems_solved" }
+    }
+  }
+]);
+
+output
+{
+  _id: 'userId1',
+  total_problems_solved: 120
+}
+
+5.Find all the mentors with who has the mentee's count more than 15
+db.mentors.find({
+  mentee_count: { $gt: 15 }
+});
+
+output
+{
+  _id: 'mentorId1',
+  name: 'Mentor A',
+  mentee_count: 20
+}
+
+6.Find the number of users who are absent and task is not submitted  between 15 oct-2020 and 31-oct-2020
+db.attendance.aggregate([
+  {
+    $match: {
+      status: "absent",
+      date: {
+        $gte: ISODate("2020-10-15"),
+        $lte: ISODate("2020-10-31")
+      }
+    }
+  },
+  {
+    $lookup: {
+      from: "tasks",
+      localField: "user_id",
+      foreignField: "user_id",
+      as: "tasks"
+    }
+  },
+  { $unwind: "$tasks" },  // Unwind to flatten the tasks array
+  {
+    $match: {
+      "tasks.submitted": false
+    }
+  },
+  {
+    $group: {
+      _id: "$user_id",
+      total_absent: { $sum: 1 }
+    }
+  }
+]);
+
+output
+
+{
+  _id: 'userId2',
+  total_absent: 3
+}
+
+Explanation
+1.Topics and Tasks for October:
+    We use $lookup to join the topics and tasks collections and filter topics within the month of October.
+
+2.Company Drives between 15-31 Oct:
+    A simple find() query filters drives within the specified date range.
+
+3.Company Drives with Students:
+    $lookup is used to join the company_drives and users collections to show details of students.
+
+4.Codekata Problems Solved:
+    Aggregation groups by user_id to sum the total problems solved.
+
+5.Mentors with More than 15 Mentees:
+    A straightforward find() query filters mentors based on mentee_count.
+
+6.Absent Users with Unsubmitted Tasks:
+    We use $lookup to join attendance with tasks and $match to filter users with absent status and unsubmitted tasks in the specified period.
